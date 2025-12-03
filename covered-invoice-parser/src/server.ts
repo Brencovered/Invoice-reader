@@ -6,16 +6,13 @@ import { parseWoolworthsInvoice } from "./woolworthsParser";
 import { invoiceToGroceryRows } from "./saveToSupabase";
 
 const app = express();
-const upload = multer(); // store files in memory
+const upload = multer(); // files in memory
 const port = process.env.PORT || 3000;
 
-// Simple upload form
 app.get("/", (_req, res) => {
   res.send(`
     <html>
-      <head>
-        <title>Covered Invoice Upload</title>
-      </head>
+      <head><title>Covered Invoice Upload</title></head>
       <body style="font-family: sans-serif; padding: 2rem;">
         <h1>Upload Woolworths Invoice (PDF)</h1>
         <form action="/upload-invoice" method="post" enctype="multipart/form-data">
@@ -28,28 +25,23 @@ app.get("/", (_req, res) => {
   `);
 });
 
-// Handle PDF upload and parse it
 app.post("/upload-invoice", upload.single("invoice"), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded. Field name must be 'invoice'." });
+      return res
+        .status(400)
+        .json({ error: "No file uploaded. Field name must be 'invoice'." });
     }
 
-    // The PDF as a buffer
     const buffer = req.file.buffer;
-
-    // Extract text from the uploaded PDF (no need to write to disk)
     const pdfData = await pdf(buffer);
     const text = pdfData.text;
 
-    // Parse Woolworths invoice
     const parsed = parseWoolworthsInvoice(text);
 
-    // Map to your grocery_items row structure (using DEFAULT_USER_ID or a dummy)
     const userId = process.env.DEFAULT_USER_ID || "demo-user";
     const groceryRows = invoiceToGroceryRows(parsed, userId);
 
-    // For testing, just return JSON (no DB insert)
     res.json({
       meta: parsed.meta,
       items: parsed.items,
@@ -57,7 +49,9 @@ app.post("/upload-invoice", upload.single("invoice"), async (req, res) => {
     });
   } catch (err: any) {
     console.error("Error handling upload:", err);
-    res.status(500).json({ error: "Failed to parse invoice", details: err.message ?? String(err) });
+    res
+      .status(500)
+      .json({ error: "Failed to parse invoice", details: err.message ?? String(err) });
   }
 });
 
