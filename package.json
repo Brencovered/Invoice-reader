@@ -8,7 +8,7 @@
     "build": "tsc",
     "parse": "ts-node src/index.ts sample-data/280749993.pdf",
     "parse:custom": "ts-node src/index.ts",
-    "start": "npm run parse"
+    "start": "ts-node src/server.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.0",
